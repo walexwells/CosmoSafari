@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Cosmo Safari</title>
+</head>
+<body>
+	<h1>Cosmo Safari</h1>
+	<button id="go" type="button">Go!</button>
+	<button id="insruction" type="button">Help</button>
+	<p>Music from Jukedeck - create your own at http://jukedeck.com</p>
+	<script>
+		const spaceshipMusic = 'Vibrant Princess'
+		const planetMusicNames = [
+			'Crooked Thunder',
+			'Earthy Fiction',
+			'London Belief',
+			'Miniscule Authority',
+			'Purple Prince',
+			'Scandalous Brew',
+			'Spartan Belief',
+			'Sweltering Secrets'
+		]
+		const animals = [
+			'African Elephant',
+			'Giant Panda',
+			'Reindeer',
+			'Gray Wolf',
+			'Mandrill',
+			'Flying Fox',
+			'Snow Leopard',
+			'Przewlaski\'s Horse',
+			'Red kangaroo',
+			'Lion',
+			'Polar bear',
+			'Dromedary',
+			'Orangutan',
+			'Okapi',
+			'Grizzly bear',
+			'Chimpanzee',
+			'Arctic fox',
+			'Tapir',
+			'Tiger',
+			'Warthog',
+			'Beaver',
+			'Giraffe',
+			'Koala',
+			'Zebra',
+			'Sloth',
+			'Bison',
+			'Hippopotamus',
+			'Gorilla',
+			'White Rhinoceros',
+			'Wolverine',
+			'Ring-tailed Lemur',
+			'Ibex',
+			'Leopard',
+			'Duck-billed platypus',
+			'Striped Hyena',
+			'Bush Baby',
+		]
+		const colors = [
+			'Red',
+			'Pink',
+			'Brown',
+			'Orange',
+			'Yellow',
+			'Green',
+			'Blue',
+			'Purple',
+			'Black',
+			'Gray',
+			'White',
+		]
+		const landscapes = [
+			'Ocean',
+			'Desert',
+			'Forest',
+			'Grassland',
+			'Tundra',
+			'Mountain',
+		]
+
+		const landscapeAdjectives = [
+			'beautiful',
+			'strange',
+			'bizzar',
+			'funny',
+			'ordinary',
+			'enormous'
+		]
+
+		const powerActions = [
+			'clapping your hands',
+			'rubbing your tummy',
+			'waving your arms',
+			'blinking your eyes'
+		]
+
+		const animalWonders = [
+			'what it eats',
+			'where it lives',
+			'how fast it moves',
+			'what else we will find',
+			'how strong it is'
+		]
+
+		const disasters = [
+			'That alien animal looks dangerous. It is coming toward us!',
+			'A powerful storm is developing.',
+			'The planet is shaking.',
+			'We forgot to bring our lunch.',
+			'The engine of the Cosmo Safari has a problem that will make it break soon.',
+			'The sensors have detected a monster just over the horizon that is rushing toward us.'
+		]
+
+		const getMusic = name => {
+			const a= new Audio()
+			a.src = 'music/'+name+'.mp3'
+			return a
+		}
+
+		Array.prototype.rand = function(){
+			return this[Math.floor(Math.random()*this.length)]
+		}
+
+		const goButton = document.getElementById('go')
+
+		let currentUtterance;
+		const say = msg => new Promise( resolve => {
+			const u = new SpeechSynthesisUtterance(msg)
+			u.rate = 0.75
+			u.onend = resolve
+			currentUtterance = u;
+			speechSynthesis.speak(u)
+		})
+
+
+
+	let currentMusic;
+	const scriptCommands = {
+		startMusic: (name, volume) => new Promise(resolve =>{
+			if(currentMusic)currentMusic.pause()
+			currentMusic = getMusic(name)
+			currentMusic.volume = parseFloat(volume)
+			currentMusic.play()
+			resolve()
+		}),
+		volume: value => {
+			currentMusic.volume = parseFloat(value)
+			return Promise.resolve()
+		},
+		stopMusic: () => new Promise(resolve => {
+			currentMusic && currentMusic.pause()
+			resolve()
+		}),
+		wait: time => new Promise(resolve => setTimeout(resolve,time)),
+		skip: () => Promise.resolve()
+	}
+
+	async function executeScript(script){
+		const lines = script.split(/(%\[[^\]]*\])/g)
+		const commands = lines.map(line =>{
+			const match = /%\[([^\]]+)\]/.exec(line)
+			if(match){
+				const cmd = match[1].split('-')
+				return () => scriptCommands[cmd[0]](cmd[1],cmd[2])
+
+			} else {
+				return () => say(line)
+			}
+		})
+		for( command of commands){
+			await command()
+		}
+	}
+
+		goButton.addEventListener('click',async ()=>{
+			const color = colors.rand()
+			const landscape = landscapes.rand()
+			const animal = `the head of a ${animals.rand()} and the body of a ${animals.rand()}`
+			const powerAction = powerActions.rand()
+			const planetMusic = planetMusicNames.rand()
+			const landscapeAdjective = landscapeAdjectives.rand()
+			const animalWonder = animalWonders.rand()
+			const disaster = disasters.rand()
+			
+			executeScript(`
+Welcome aboard, everyone! The Cosmo Safari is the fastest spaceship in the galaxy. Today we are going to explore a new planet. No one has ever been there before, so we are not sure what we will find. Are you ready for an adventure?
+
+First we need to recharge the Cosmo Safari. You do this by ${powerAction}. Everyone start ${powerAction}.
+%[wait-2000] Almost done. %[wait-1000] There. The Cosmo Safari is charged and ready to launch into outer space. Everyone make sure you are on the Cosmo Safari. Keep your hands and feet inside while we are flying. 
+
+Get ready for liftoff. Ten. Nine. Eight. Seven. Six. Five. Four. Three. Two. One. %[startMusic-${spaceshipMusic}-.5] Liftoff!
+%[wait-10000]
+
+%[volume-.1]
+
+We are getting close to our destination. Pull out your telescope and look strait ahead. You should see a ${color} planet. Do you see it? %[wait-1000]
+
+Put your seatbelts on to prepare for landing. We will enter the atmosphere in, Three. Two. One.
+
+%[volume-.5]
+%[wait-5000]
+
+%[volume-.1]
+The parachutes have opened.
+
+%[wait-5000]
+%[stopMusic]
+Touchdown!
+%[wait-2000]
+%[startMusic-${planetMusic}-.25]
+%[wait-2000]
+We landed at a ${landscapeAdjective} ${landscape}. Take a moment to look around.
+%[wait-1000]
+The sensors have determined that it is safe to leave the Cosmo Safari. You may get out and look around.
+%[wait-10000]
+Look. There is an alien animal. It has ${animal}.
+%[wait-1000]
+I wonder ${animalWonder}.
+%[wait-1000]
+Oh no. ${disaster}. We must leave now. Everyone start ${powerAction} to charge the Cosmo Safari. %[wait-2000] Almost done. %[wait-1000] There. The Cosmo Safari is charged. Get inside quickly.
+Five. Four. Three. Two. One. %[stopMusic] %[startMusic-${spaceshipMusic}-.5] Liftoff!
+%[wait-10000]
+%[volume-.1]
+
+Pull out your telescope and look strait ahead. We are close to planet earth. Do you see it? %[wait-1000]
+
+Put your seatbelts on to prepare for landing. We will enter the atmosphere in, Three. Two. One.
+%[volume-.5]
+%[wait-5000]
+%[volume-.1]
+The parachutes have opened.
+
+%[wait-5000]
+%[stopMusic]
+Touchdown!
+%[wait-2000]
+Thank you for riding the Cosmo Safari. I hope you enjoyed your adventure.
+
+			`)
+		})
+
+	document.querySelector('#insruction').addEventListener('click', async ()=>{
+		executeScript(`
+			Get ready for an adventure aboard the Cosmo Safari. 
+			To get ready you need to have something that you can pretend is the Cosmo Safari. A couch or blanket will work awesome. Everyone playing should be able to fit on it.
+
+		For maximum enjoyment turn your imagination on full speed and follow my instructions. Push the button that says go when you are ready.
+			`);
+	})
+	</script>
+</body>
+</html>
